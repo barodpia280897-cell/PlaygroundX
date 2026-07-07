@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth, ROLE_CONFIG } from '../contexts/AuthContext';
-import { Bot, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 import { PLATFORM_MENU, TENANT_MENU } from '../config/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAppPath } from '../utils/routing';
@@ -269,23 +269,46 @@ export default function Sidebar({ isOpen, setOpen }) {
           )}
         </nav>
 
-        {/* AI Assistant */}
-        {(!isPlatform && tenantGroups.some(g => filterByRole(g.children)?.some(c => c.path === '/ai-center'))) && (
-          <div className="p-3 border-t border-gray-800/50">
-            <NavLink
-              to={getAppPath('/ai-center', user?.role)}
-              onClick={() => setOpen(false)}
-              className="glass-panel border-neon-purple/20 p-3 rounded-xl flex items-center gap-3 relative overflow-hidden group cursor-pointer hover:border-neon-purple/40 transition-colors"
+        {/* PGX AI Assistant - compact row above logout */}
+        {!isPlatform && (
+          <div className="px-3 pb-2 border-t border-gray-800/50 pt-2">
+            <button
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event('open-pgx-ai-chat'));
+              }}
+              className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-[rgba(99,102,241,0.22)] hover:border-[rgba(99,102,241,0.45)] transition-all group cursor-pointer text-left"
+              style={{ background: 'linear-gradient(135deg,#0d1130 0%,#0a0c1a 100%)' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/10 to-neon-pink/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Bot size={20} className="text-neon-purple drop-shadow-[0_0_8px_rgba(138,43,226,0.8)] shrink-0" />
-              <div>
-                <div className="text-xs font-bold text-neon-purple uppercase tracking-wider">PGX AI</div>
-                <div className="text-[10px] text-neon-green flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse shadow-[0_0_5px_rgba(57,255,20,1)]" /> ONLINE
+              {/* Mini robot avatar */}
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-[rgba(99,102,241,0.3)] shrink-0"
+                style={{ background: 'linear-gradient(145deg,#312e81,#1e1b4b)' }}
+              >
+                <svg viewBox="0 0 64 64" width="26" height="26">
+                  <rect x="16" y="20" width="32" height="24" rx="6" fill="#6366f1" />
+                  <rect x="21" y="27" width="9" height="7" rx="2.5" fill="#fff" opacity="0.9" />
+                  <rect x="34" y="27" width="9" height="7" rx="2.5" fill="#fff" opacity="0.9" />
+                  <circle cx="25.5" cy="30.5" r="2.5" fill="#312e81" />
+                  <circle cx="38.5" cy="30.5" r="2.5" fill="#312e81" />
+                  <rect x="25" y="38" width="14" height="2.5" rx="1.25" fill="#fff" opacity="0.6" />
+                  <rect x="30" y="12" width="4" height="8" rx="2" fill="#818cf8" />
+                  <circle cx="32" cy="10" r="3.5" fill="#a5b4fc" />
+                  <rect x="5" y="24" width="11" height="5" rx="2.5" fill="#4f46e5" />
+                  <rect x="48" y="24" width="11" height="5" rx="2.5" fill="#4f46e5" />
+                </svg>
+              </div>
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-bold text-[#818cf8] leading-tight">PGX AI Assistant</div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_4px_rgba(74,222,128,0.8)]" />
+                  <span className="text-[9px] font-bold text-green-400 tracking-widest">ONLINE</span>
                 </div>
               </div>
-            </NavLink>
+              {/* Chat label */}
+              <span className="text-[10px] font-semibold text-indigo-400 group-hover:text-indigo-300 shrink-0">Chat →</span>
+            </button>
           </div>
         )}
 

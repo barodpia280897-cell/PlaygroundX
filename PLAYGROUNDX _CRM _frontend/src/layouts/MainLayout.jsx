@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUIState } from '../contexts/DataContext';
 import { getRolePrefix } from '../utils/routing';
+import PGXAIChat from '../components/ai/PGXAIChat';
 
 export default function MainLayout() {
   const { user } = useAuth();
@@ -47,6 +48,7 @@ export default function MainLayout() {
           </div>
         </main>
       </div>
+      <PGXAIChat />
     </div>
   );
 }

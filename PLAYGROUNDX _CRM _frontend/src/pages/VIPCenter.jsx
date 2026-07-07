@@ -1,628 +1,525 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Star, Heart, TrendingUp, DollarSign, Activity, ChevronDown, Filter, Download, Zap, AlertTriangle, MessageSquare, Gift, ArrowRight, ChevronRight, X, PhoneCall, Send, Sparkles, UserCheck, CheckCircle } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { useToast } from '../contexts/ToastContext';
-import { useDataStore } from '../contexts/DataContext';
-import { getVIPsByCategory, getVIPLeads } from '../utils/leadHelpers';
-import LeadTable from '../components/leads/LeadTable';
-import CallModal from '../components/modals/CallModal';
+import { Star, Crown, Diamond, User, DollarSign, Heart, ChevronDown, Filter, Download, ArrowRight, Zap, Target, Send, Calendar, Gift, AlertTriangle, ShieldCheck, PlayCircle, Lock, LayoutGrid, Layers, Activity, CheckCircle } from 'lucide-react';
+import { LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-// --- MOCK DATA ---
+// --- EXACT MOCK DATA MATCHING REFERENCE ---
 const overviewData = [
-  { day: 'W1', creators: 120, fans: 1800, rollers: 400, prospects: 800 },
-  { day: 'W2', creators: 135, fans: 2000, rollers: 450, prospects: 950 },
-  { day: 'W3', creators: 142, fans: 2150, rollers: 520, prospects: 1100 },
-  { day: 'W4', creators: 156, fans: 2341, rollers: 587, prospects: 1247 },
+  { name: 'Apr 21', creators: 1200, fans: 1800, rollers: 2500, prospects: 3000 },
+  { name: 'Apr 28', creators: 1350, fans: 1950, rollers: 2600, prospects: 3200 },
+  { name: 'May 5',  creators: 1300, fans: 2100, rollers: 2750, prospects: 3100 },
+  { name: 'May 12', creators: 1450, fans: 2200, rollers: 2900, prospects: 3300 },
+  { name: 'May 19', creators: 1560, fans: 2341, rollers: 3100, prospects: 3500 },
 ];
 
 const revenueTrendData = [
-  { day: 'May 1', rev: 12000 }, { day: 'May 5', rev: 15000 }, { day: 'May 10', rev: 22000 },
-  { day: 'May 15', rev: 18000 }, { day: 'May 20', rev: 28000 }, { day: 'May 25', rev: 35000 },
-  { day: 'May 30', rev: 45000 },
+  { name: 'Apr 21', rev: 120000 }, { name: 'Apr 23', rev: 150000 }, { name: 'Apr 25', rev: 220000 },
+  { name: 'Apr 28', rev: 180000 }, { name: 'Apr 30', rev: 280000 }, { name: 'May 3', rev: 350000 },
+  { name: 'May 5', rev: 450000 }, { name: 'May 8', rev: 420000 }, { name: 'May 10', rev: 480000 },
+  { name: 'May 12', rev: 520000 }, { name: 'May 15', rev: 590000 }, { name: 'May 17', rev: 610000 },
+  { name: 'May 19', rev: 683420 }
 ];
 
-const revenueSourceData = [
-  { name: 'Tips', value: 35, color: '#10b981' },
-  { name: 'Subscriptions', value: 25, color: '#3b82f6' },
-  { name: 'PPV', value: 15, color: '#8a2be2' },
-  { name: 'Suga 4 U', value: 10, color: '#f59e0b' },
-  { name: 'Others', value: 15, color: '#ef4444' },
+const highRollerActivity = [
+  { name: 'ChrisDiamond', amount: '$12,450', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=c' },
+  { name: 'KingJames', amount: '$9,870', time: '5m ago', avatar: 'https://i.pravatar.cc/150?u=k' },
+  { name: 'AlexStar', amount: '$8,230', time: '12m ago', avatar: 'https://i.pravatar.cc/150?u=a' },
+  { name: 'LoyalFan88', amount: '$7,560', time: '15m ago', avatar: 'https://i.pravatar.cc/150?u=l' },
+  { name: 'MrExclusive', amount: '$6,840', time: '18m ago', avatar: 'https://i.pravatar.cc/150?u=m' }
 ];
 
-const engagementTierData = [
-  { name: 'Diamond', value: 15, color: '#a78bfa' },
-  { name: 'Platinum', value: 25, color: '#60a5fa' },
-  { name: 'Gold', value: 35, color: '#fbbf24' },
-  { name: 'Silver', value: 15, color: '#9ca3af' },
-  { name: 'Bronze', value: 10, color: '#d1d5db' },
+const topCreators = [
+  { id: 1, name: 'Luna Starr', rev: '$68,450', fans: '1.2K', growth: '+ 24.5%', avatar: 'https://i.pravatar.cc/150?u=luna' },
+  { id: 2, name: 'Mia Luxe', rev: '$47,890', fans: '987', growth: '+ 18.3%', avatar: 'https://i.pravatar.cc/150?u=mia' },
+  { id: 3, name: 'Chloe Vibes', rev: '$43,210', fans: '876', growth: '+ 12.1%', avatar: 'https://i.pravatar.cc/150?u=chloe' },
+  { id: 4, name: 'Ava Monroe', rev: '$34,550', fans: '654', growth: '+ 9.8%', avatar: 'https://i.pravatar.cc/150?u=ava' },
+  { id: 5, name: 'Zara Wild', rev: '$28,760', fans: '543', growth: '+ 7.6%', avatar: 'https://i.pravatar.cc/150?u=zara' }
 ];
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#0f111a] border border-gray-700 rounded-xl p-3 shadow-xl z-50">
-      <p className="text-[10px] font-bold text-gray-400 mb-2">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} className="text-[11px] font-bold flex items-center gap-2" style={{ color: p.color || p.payload?.fill }}>
-          {p.name}: {p.value}
-        </p>
-      ))}
-    </div>
-  );
+const topFans = [
+  { id: 1, name: 'ChrisDiamond', spent: '$12,450', trans: '89', eng: '95%', avatar: 'https://i.pravatar.cc/150?u=c' },
+  { id: 2, name: 'KingJames', spent: '$9,870', trans: '58', eng: '92%', avatar: 'https://i.pravatar.cc/150?u=k' },
+  { id: 3, name: 'AlexStar', spent: '$8,230', trans: '42', eng: '91%', avatar: 'https://i.pravatar.cc/150?u=a' },
+  { id: 4, name: 'LoyalFan88', spent: '$7,560', trans: '36', eng: '89%', avatar: 'https://i.pravatar.cc/150?u=l' },
+  { id: 5, name: 'MrExclusive', spent: '$6,840', trans: '31', eng: '87%', avatar: 'https://i.pravatar.cc/150?u=m' }
+];
+
+const highRollersList = [
+  { id: 1, name: 'ChrisDiamond', spent: '$12,450', freq: '24', seen: '2m ago', avatar: 'https://i.pravatar.cc/150?u=c' },
+  { id: 2, name: 'KingJames', spent: '$9,870', freq: '18', seen: '5m ago', avatar: 'https://i.pravatar.cc/150?u=k' },
+  { id: 3, name: 'AlexStar', spent: '$8,230', freq: '15', seen: '12m ago', avatar: 'https://i.pravatar.cc/150?u=a' },
+  { id: 4, name: 'LoyalFan88', spent: '$7,560', freq: '12', seen: '15m ago', avatar: 'https://i.pravatar.cc/150?u=l' },
+  { id: 5, name: 'MrExclusive', spent: '$6,840', freq: '10', seen: '18m ago', avatar: 'https://i.pravatar.cc/150?u=m' }
+];
+
+const alerts = [
+  { icon: <AlertTriangle size={12} className="text-red-500" />, title: 'High Roller Inactive', desc: 'KingJames inactive for 3 days', time: '10m ago', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+  { icon: <AlertTriangle size={12} className="text-yellow-500" />, title: 'VIP Creator Inactive', desc: 'Zara Wild inactive for 2 days', time: '25m ago', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+  { icon: <AlertTriangle size={12} className="text-yellow-500" />, title: 'VIP Fan At Risk', desc: 'AlexStar engagement dropping', time: '35m ago', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+  { icon: <CheckCircle size={12} className="text-green-500" />, title: 'Big Spender Alert', desc: 'ChrisDiamond spent $5K+ today', time: '45m ago', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+  { icon: <Zap size={12} className="text-blue-500" />, title: 'VIP Prospect Hot', desc: 'New VIP prospect showing high potential', time: '1h ago', bg: 'bg-blue-500/10', border: 'border-blue-500/30' }
+];
+
+const revSourceData = [
+  { name: 'Tips', value: 194230, pct: '28.4%', color: '#ec4899' },
+  { name: 'Subscriptions', value: 156780, pct: '22.9%', color: '#3b82f6' },
+  { name: 'PPV', value: 98450, pct: '14.4%', color: '#10b981' },
+  { name: 'Truth or Dare', value: 87320, pct: '12.8%', color: '#f59e0b' },
+  { name: 'Suga 4 U', value: 65410, pct: '9.6%', color: '#eab308' },
+  { name: 'Bar Lounge', value: 45230, pct: '6.6%', color: '#ef4444' },
+  { name: 'Others', value: 36000, pct: '5.3%', color: '#8b5cf6' }
+];
+
+const engTierData = [
+  { name: 'Diamond', val: '89.2%', grw: '↑ 8.1%', color: '#3b82f6' },
+  { name: 'Platinum', val: '82.1%', grw: '↑ 6.7%', color: '#00f0ff' },
+  { name: 'Gold', val: '75.3%', grw: '↑ 5.4%', color: '#f59e0b' },
+  { name: 'Silver', val: '69.8%', grw: '↑ 4.2%', color: '#9ca3af' },
+  { name: 'Bronze', val: '62.4%', grw: '↑ 3.1%', color: '#d97706' },
+];
+
+const engDonut = [
+  { name: 'Diamond', value: 35, color: '#3b82f6' },
+  { name: 'Platinum', value: 25, color: '#00f0ff' },
+  { name: 'Gold', value: 20, color: '#f59e0b' },
+  { name: 'Silver', value: 10, color: '#9ca3af' },
+  { name: 'Bronze', value: 10, color: '#d97706' },
+];
+
+const actions = [
+  { icon: <User size={14} className="text-red-500" />, title: 'Engage inactive high rollers', btn: 'View', color: 'bg-red-500/10 border-red-500/30' },
+  { icon: <Heart size={14} className="text-blue-500" />, title: 'Follow up with VIP prospects', btn: 'View', color: 'bg-blue-500/10 border-blue-500/30' },
+  { icon: <Gift size={14} className="text-yellow-500" />, title: 'Send VIP creator incentives', btn: 'Create Campaign', color: 'bg-yellow-500/10 border-yellow-500/30' },
+  { icon: <Calendar size={14} className="text-green-500" />, title: 'Schedule VIP check-ins', btn: 'View', color: 'bg-green-500/10 border-green-500/30' },
+  { icon: <Star size={14} className="text-purple-500" />, title: 'Personalized offers for top spenders', btn: 'Create Offer', color: 'bg-purple-500/10 border-purple-500/30' }
+];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#0B0E14] border border-gray-700/80 p-3 rounded-lg shadow-xl shadow-black/50 text-[10px]">
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="text-gray-300 font-medium">{entry.name}:</span>
+            <span className="text-white font-bold">{entry.value.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
 };
 
 export default function VIPCenter() {
   const [activeTab, setActiveTab] = useState('Overview');
-  const [allLeads] = useDataStore('leads');
-  const vipLeads = getVIPLeads(allLeads);
-  const { addToast } = useToast();
-
-  // Interactive filter states
-  const [deptFilter, setDeptFilter] = useState('All Departments');
-  const [timeframe, setTimeframe] = useState('Last 30 Days');
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-
-  // VIP Concierge assistance modal state
-  const [selectedConciergeClient, setSelectedConciergeClient] = useState(null);
-  const [customGiftMessage, setCustomGiftMessage] = useState('');
-  const [callLead, setCallLead] = useState(null);
-
-  const handleSendVipGift = (client, giftType) => {
-    addToast('success', 'VIP Concierge Dispatched 🎁', `Sent ${giftType} to ${client.name || client.stage || 'VIP Client'}.`);
-    setSelectedConciergeClient(null);
-    setCustomGiftMessage('');
-  };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="min-h-screen bg-[#05070D] font-sans pb-10">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-2xl border border-gray-800 backdrop-blur-md">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h2 className="text-2xl font-black text-white flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-            VIP Concierge Center <span className="text-sm font-normal text-muted sm:ml-2">Manage and engage VIP creators, high rollers, and top earners</span>
-          </h2>
-        </motion.div>
-        
-        <div className="flex items-center gap-3 flex-wrap filter-bar">
-          <div className="relative group">
-            <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-700 bg-gray-900/80 text-xs font-bold text-gray-300 hover:text-white transition-colors">
-              {deptFilter} <ChevronDown size={14} />
-            </button>
-            <div className="absolute top-full right-0 mt-1 hidden group-hover:block w-44 bg-gray-950 border border-gray-800 rounded-xl z-30 shadow-2xl overflow-hidden">
-              {['All Departments', 'VIP Creators Desk', 'High Rollers Desk', 'International Tier 1', 'Crypto & Whale Accounts'].map(d => (
-                <button key={d} onClick={() => { setDeptFilter(d); addToast('info', 'Department Filtered', `Showing VIP telemetry for ${d}.`); }} className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">{d}</button>
-              ))}
-            </div>
+      {/* HEADER */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            VIP Center <span className="text-[11px] font-normal text-gray-400 mt-1">Manage and engage VIP creators, fans, and high value prospects</span>
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <select className="appearance-none bg-[#0D111B] border border-gray-800 rounded-md py-1.5 pl-3 pr-8 text-[11px] font-semibold text-gray-300 focus:outline-none cursor-pointer">
+              <option>All Departments</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
-
-          <div className="relative group">
-            <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-700 bg-gray-900/80 text-xs font-bold text-gray-300 hover:text-white transition-colors">
-              {timeframe} <ChevronDown size={14} />
-            </button>
-            <div className="absolute top-full right-0 mt-1 hidden group-hover:block w-36 bg-gray-950 border border-gray-800 rounded-xl z-30 shadow-2xl overflow-hidden">
-              {['Last 7 Days', 'Last 30 Days', 'This Quarter', 'All-Time High'].map(tf => (
-                <button key={tf} onClick={() => { setTimeframe(tf); addToast('info', 'Period Updated', `Recalculated revenue velocity for ${tf}.`); }} className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">{tf}</button>
-              ))}
-            </div>
+          <div className="relative">
+            <select className="appearance-none bg-[#0D111B] border border-gray-800 rounded-md py-1.5 pl-3 pr-8 text-[11px] font-semibold text-gray-300 focus:outline-none cursor-pointer">
+              <option>Last 30 Days</option>
+            </select>
+            <Calendar size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
-
-          <button onClick={() => setShowFiltersModal(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-700 bg-gray-900/80 text-xs font-bold text-gray-300 hover:text-white transition-colors shadow-sm">
-            <Filter size={14} /> Filters
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D111B] border border-gray-800 rounded-md text-[11px] font-semibold text-gray-300 hover:text-white transition-colors">
+            <Filter size={12} /> Filters
           </button>
-
-          <button onClick={() => setShowExportModal(true)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-700 bg-gray-900/80 text-xs font-bold text-neon-blue hover:bg-neon-blue/10 transition-colors shadow-sm">
-            <Download size={14} /> Export
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D111B] border border-gray-800 rounded-md text-[11px] font-semibold text-gray-300 hover:text-white transition-colors">
+            <Download size={12} /> Export
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-gray-900/60 border border-gray-800 rounded-2xl overflow-x-auto no-scrollbar p-1.5">
-        {['Overview', 'VIP Creators', 'VIP Fans', 'VIP Prospects', 'High Rollers', 'Top Earners', 'Watchlist', 'Engagement', 'Analytics'].map((t) => (
+      {/* TABS */}
+      <div className="flex items-center gap-6 border-b border-gray-800/80 mb-6 overflow-x-auto no-scrollbar">
+        {['Overview', 'VIP Creators', 'VIP Fans', 'VIP Prospects', 'High Rollers', 'Top Earners', 'Watchlist', 'Engagement', 'Analytics'].map(tab => (
           <button 
-            key={t} 
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-2.5 text-xs font-black transition-all whitespace-nowrap rounded-xl ${activeTab === t ? 'text-black bg-neon-blue shadow-[0_0_12px_rgba(0,240,255,0.5)] scale-105' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-            {t}
+            key={tab} 
+            onClick={() => setActiveTab(tab)}
+            className={`pb-3 text-[11px] font-bold whitespace-nowrap transition-colors relative ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+          >
+            {tab}
+            {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />}
           </button>
         ))}
       </div>
 
-      {/* Top KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-4">
         {[
-          { label: 'VIP Creators', value: vipLeads.filter(l=>l.type==='Creator').length.toLocaleString() || '156', trend: '↑ 12%', color: '#a855f7', icon: Crown },
-          { label: 'VIP Fans', value: vipLeads.filter(l=>l.type==='Fan').length.toLocaleString() || '2,341', trend: '↑ 8%', color: '#ec4899', icon: Heart },
-          { label: 'High Rollers ($1k+)', value: '587', trend: '↑ 15%', color: '#eab308', icon: Star },
-          { label: 'VIP Prospects', value: '1,247', trend: '↑ 22%', color: '#3b82f6', icon: Activity },
-          { label: 'Total VIP Revenue', value: '$683,420', trend: '↑ 18%', color: '#10b981', icon: DollarSign },
-          { label: 'Engagement Rate', value: '78.6%', trend: '↑ 5%', color: '#0ea5e9', icon: TrendingUp },
-        ].map((kpi, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass-panel p-4 flex flex-col justify-between hover:border-gray-700 transition-colors">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{kpi.label}</span>
-              <div className="flex items-center justify-center w-7 h-7 rounded-lg" style={{ backgroundColor: `${kpi.color}15`, border: `1px solid ${kpi.color}30` }}>
-                <kpi.icon size={15} style={{ color: kpi.color }} />
-              </div>
+          { label: 'VIP Creators', val: '156', grw: '↑ 12.4% vs last 30 days', icon: <Star size={16} />, color: 'text-purple-500', bg: 'bg-purple-500/10', glow: 'hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]', border: 'border-purple-500/30' },
+          { label: 'VIP Fans', val: '2,341', grw: '↑ 18.7% vs last 30 days', icon: <Crown size={16} />, color: 'text-blue-500', bg: 'bg-blue-500/10', glow: 'hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]', border: 'border-blue-500/30' },
+          { label: 'High Rollers', val: '587', grw: '↑ 15.6% vs last 30 days', icon: <Diamond size={16} />, color: 'text-yellow-500', bg: 'bg-yellow-500/10', glow: 'hover:shadow-[0_0_15px_rgba(234,179,8,0.15)]', border: 'border-yellow-500/30' },
+          { label: 'VIP Prospects', val: '1,247', grw: '↑ 20.1% vs last 30 days', icon: <User size={16} />, color: 'text-[#00f0ff]', bg: 'bg-[#00f0ff]/10', glow: 'hover:shadow-[0_0_15px_rgba(0,240,255,0.15)]', border: 'border-[#00f0ff]/30' },
+          { label: 'Total VIP Revenue (MTD)', val: '$683,420', grw: '↑ 21.8% vs last 30 days', icon: <DollarSign size={16} />, color: 'text-green-500', bg: 'bg-green-500/10', glow: 'hover:shadow-[0_0_15px_rgba(34,197,94,0.15)]', border: 'border-green-500/30' },
+          { label: 'VIP Engagement Rate', val: '78.6%', grw: '↑ 6.3% vs last 30 days', icon: <Heart size={16} />, color: 'text-pink-500', bg: 'bg-pink-500/10', glow: 'hover:shadow-[0_0_15px_rgba(236,72,153,0.15)]', border: 'border-pink-500/30' }
+        ].map((k, i) => (
+          <div key={i} className={`bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex items-center gap-3 transition-all hover:-translate-y-0.5 ${k.glow}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${k.bg} ${k.border} ${k.color}`}>
+              {k.icon}
             </div>
             <div>
-              <div className="text-xl font-black text-white">{kpi.value}</div>
-              <div className="text-[10px] font-bold mt-1 text-neon-green">{kpi.trend} vs {timeframe.toLowerCase()}</div>
+              <div className="text-[10px] font-semibold text-gray-400">{k.label}</div>
+              <div className="text-lg font-bold text-white mt-0.5 leading-tight">{k.val}</div>
+              <div className="text-[8px] font-semibold text-green-500 mt-1">{k.grw}</div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      {activeTab !== 'Overview' && activeTab !== 'Analytics' && activeTab !== 'Engagement' && (
-        <div className="glass-panel p-6 shadow-xl space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b border-gray-800">
-            <h3 className="text-base font-black text-white flex items-center gap-2">
-              <Crown size={18} className="text-yellow-400"/> Directory: {activeTab} ({deptFilter})
-            </h3>
-            <span className="text-xs font-extrabold text-neon-blue bg-neon-blue/10 px-3 py-1 rounded-full border border-neon-blue/20">Active Telemetry</span>
+      {/* ROW 2: CHARTS & ACTIVITY */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+        {/* Overview Chart */}
+        <div className="lg:col-span-5 bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <h3 className="text-[11px] font-bold text-white mb-4">VIP Overview</h3>
+          <div className="flex items-center gap-4 mb-4 text-[9px] font-semibold justify-center">
+            <span className="flex items-center gap-1.5"><div className="w-2 h-0.5 bg-purple-500" /> VIP Creators</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-0.5 bg-blue-500" /> VIP Fans</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-0.5 bg-yellow-500" /> High Rollers</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-0.5 bg-[#00f0ff]" /> VIP Prospects</span>
           </div>
-          <LeadTable 
-            leads={getVIPsByCategory(allLeads, activeTab)} 
-            config={{ showAgent: true, canAct: true }} 
-            onView={(lead) => setSelectedConciergeClient(lead)} 
-            onDelete={() => {}} 
-            onEdit={(lead) => setSelectedConciergeClient(lead)} 
-          />
-        </div>
-      )}
-
-      {(activeTab === 'Analytics' || activeTab === 'Engagement') && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass-panel p-6 shadow-xl flex flex-col">
-            <h3 className="text-base font-black text-white mb-4 flex items-center gap-2"><TrendingUp size={18} className="text-neon-blue"/> {activeTab} Velocity Distribution</h3>
-            <div className="flex-1 w-full h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={overviewData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                  <XAxis dataKey="day" stroke="#6b7280" fontSize={11} />
-                  <YAxis stroke="#6b7280" fontSize={11} />
-                  <RechartsTooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="fans" stroke="#ec4899" fill="#ec4899" fillOpacity={0.2} strokeWidth={2.5} />
-                  <Area type="monotone" dataKey="creators" stroke="#a855f7" fill="#a855f7" fillOpacity={0.2} strokeWidth={2.5} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="glass-panel p-6 shadow-xl flex flex-col justify-center items-center text-center space-y-3">
-            <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center text-yellow-400 shadow-inner">
-              <Star size={32} />
-            </div>
-            <h3 className="text-lg font-black text-white">Dedicated {activeTab} Report Audit</h3>
-            <p className="text-xs text-gray-400 max-w-sm">All engagement scores, Diamond tier retention percentages, and ARPU breakdown for {timeframe}.</p>
-            <button onClick={() => setShowExportModal(true)} className="px-6 py-2.5 bg-yellow-400 text-black font-black text-xs rounded-xl shadow-md hover:bg-yellow-300 transition-all">Download Audit PDF →</button>
+          <div className="flex-1 w-full min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={overviewData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1B2332" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#6b7280' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#6b7280' }} tickFormatter={(val) => `${val/1000}K`} dx={-10} />
+                <Tooltip content={<CustomTooltip />} />
+                <Line type="monotone" dataKey="creators" stroke="#a855f7" strokeWidth={2} dot={{ r: 3, fill: '#0D111B', stroke: '#a855f7', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="fans" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: '#0D111B', stroke: '#3b82f6', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="rollers" stroke="#eab308" strokeWidth={2} dot={{ r: 3, fill: '#0D111B', stroke: '#eab308', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="prospects" stroke="#00f0ff" strokeWidth={2} dot={{ r: 3, fill: '#0D111B', stroke: '#00f0ff', strokeWidth: 2 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      )}
 
-      {activeTab === 'Overview' && (
-        <div className="space-y-6">
-          {/* Row 2: Charts & Activity */}
-          <div className="flex flex-col xl:flex-row gap-4 h-auto xl:h-[340px]">
-            {/* VIP Overview Line Chart */}
-            <div className="glass-panel p-5 w-full xl:w-2/5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-extrabold text-white">VIP Growth Overview</h3>
-                <div className="flex items-center gap-3 text-[10px] font-bold">
-                  <span className="flex items-center gap-1 text-gray-300"><div className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Creators</span>
-                  <span className="flex items-center gap-1 text-gray-300"><div className="w-2.5 h-2.5 rounded-full bg-pink-500" /> Fans</span>
-                </div>
-              </div>
-              <div className="flex-1 w-full h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={overviewData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                    <XAxis dataKey="day" stroke="#6b7280" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" fontSize={10} tickLine={false} axisLine={false} />
-                    <RechartsTooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="fans" name="VIP Fans" stroke="#ec4899" strokeWidth={2.5} dot={false} />
-                    <Line type="monotone" dataKey="creators" name="VIP Creators" stroke="#a855f7" strokeWidth={2.5} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+        {/* Revenue Trend Area Chart */}
+        <div className="lg:col-span-4 bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="text-[11px] font-bold text-white mb-1">VIP Revenue Trend</h3>
+              <div className="text-xl font-bold text-white">$683,420</div>
+              <div className="text-[9px] font-semibold text-green-500 mt-1">↑ 21.8% vs last 30 days</div>
             </div>
-
-            {/* VIP Revenue Trend */}
-            <div className="glass-panel p-5 w-full xl:w-2/5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="text-xs font-extrabold text-white">VIP Revenue Velocity</h3>
-                  <div className="text-[10px] text-gray-400 font-bold">{timeframe}</div>
-                </div>
-                <div className="text-xl font-black text-neon-green">$683.4K</div>
-              </div>
-              <div className="flex-1 w-full h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueTrendData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                    <XAxis dataKey="day" stroke="#6b7280" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v/1000}k`} />
-                    <RechartsTooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="rev" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRev)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* High Roller Activity Sidebar */}
-            <div className="glass-panel p-5 w-full xl:w-1/5 flex flex-col min-w-0 shadow-xl">
-              <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-                <h3 className="text-xs font-extrabold text-white">High Roller Activity</h3>
-                <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-              </div>
-              <div className="space-y-4 flex-1 overflow-y-auto no-scrollbar pr-1">
-                {[
-                  { name: 'Alex M.', spent: '$1,200', action: 'tipped @lunastarr', time: 'Just now', avatar: 'https://i.pravatar.cc/150?img=11' },
-                  { name: 'John D.', spent: '$500', action: 'subscribed to VIP', time: '5m ago', avatar: 'https://i.pravatar.cc/150?img=12' },
-                  { name: 'Sarah K.', spent: '$800', action: 'purchased PPV', time: '12m ago', avatar: 'https://i.pravatar.cc/150?img=9' },
-                  { name: 'Mike T.', spent: '$2,500', action: 'tipped @mateo', time: '20m ago', avatar: 'https://i.pravatar.cc/150?img=15' },
-                  { name: 'Emma W.', spent: '$400', action: 'gifted sub', time: '1h ago', avatar: 'https://i.pravatar.cc/150?img=5' },
-                ].map((a, i) => (
-                  <div key={i} onClick={() => setSelectedConciergeClient(a)} className="flex gap-2.5 cursor-pointer group p-1 rounded-xl hover:bg-white/5 transition-colors">
-                    <img src={a.avatar} className="w-7 h-7 rounded-full border border-gray-700 shrink-0" alt="" />
-                    <div>
-                      <div className="text-xs text-gray-300 leading-tight">
-                        <span className="font-extrabold text-white group-hover:text-neon-blue transition-colors">{a.name}</span> {a.action} <span className="font-black text-neon-green">{a.spent}</span>
-                      </div>
-                      <div className="text-[9px] text-gray-500 mt-0.5 font-mono">{a.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <select className="bg-transparent text-[10px] font-semibold text-gray-500 focus:outline-none appearance-none cursor-pointer">
+              <option>Last 30 Days ▾</option>
+            </select>
           </div>
-
-          {/* Row 3: Data Tables */}
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-            {/* Top VIP Creators */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-extrabold text-white flex items-center gap-2"><Crown size={15} className="text-purple-400"/> Top VIP Creators</h3>
-                <button onClick={() => setActiveTab('VIP Creators')} className="text-[10px] text-neon-blue hover:underline font-bold">View All</button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                      <th className="pb-2.5">Creator</th>
-                      <th className="pb-2.5 text-right">Revenue</th>
-                      <th className="pb-2.5 text-right">Growth</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800/50 text-xs">
-                    {vipLeads.filter(v => v.type === 'Creator').slice(0, 4).map((c, i) => (
-                      <tr key={i} onClick={() => setSelectedConciergeClient(c)} className="hover:bg-white/[0.03] cursor-pointer group">
-                        <td className="py-2.5 flex items-center gap-2.5">
-                          <img src={c.avatar} className="w-7 h-7 rounded-full border border-gray-700" alt=""/>
-                          <span className="text-xs font-extrabold text-white group-hover:text-purple-400 transition-colors">{c.name}</span>
-                        </td>
-                        <td className="py-2.5 text-xs font-black text-neon-green text-right font-mono">{c.earnings || '$42.5K'}</td>
-                        <td className="py-2.5 text-[10px] font-bold text-green-400 text-right">+12%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Top VIP Fans */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-extrabold text-white flex items-center gap-2"><Heart size={15} className="text-pink-400"/> Top VIP Fans</h3>
-                <button onClick={() => setActiveTab('VIP Fans')} className="text-[10px] text-neon-blue hover:underline font-bold">View All</button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                      <th className="pb-2.5">Fan</th>
-                      <th className="pb-2.5 text-right">Spent</th>
-                      <th className="pb-2.5 text-right">Trans.</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800/50 text-xs">
-                    {vipLeads.filter(v => v.type === 'Fan').slice(0, 4).map((f, i) => (
-                      <tr key={i} onClick={() => setSelectedConciergeClient(f)} className="hover:bg-white/[0.03] cursor-pointer group">
-                        <td className="py-2.5 flex items-center gap-2.5">
-                          <img src={f.avatar} className="w-7 h-7 rounded-full border border-gray-700" alt=""/>
-                          <span className="text-xs font-extrabold text-white group-hover:text-pink-400 transition-colors">{f.name}</span>
-                        </td>
-                        <td className="py-2.5 text-xs font-black text-neon-green text-right font-mono">{f.spent || '$14.2K'}</td>
-                        <td className="py-2.5 text-xs text-gray-300 text-right font-bold">{f.score || 45}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* High Rollers (MTD) */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-extrabold text-white flex items-center gap-2"><Star size={15} className="text-yellow-400"/> High Rollers (MTD)</h3>
-                <button onClick={() => setActiveTab('High Rollers')} className="text-[10px] text-neon-blue hover:underline font-bold">View All</button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                      <th className="pb-2.5">Roller</th>
-                      <th className="pb-2.5 text-right">Spent</th>
-                      <th className="pb-2.5 text-right">Last Seen</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800/50 text-xs">
-                    {[
-                      { name: 'Mike Tyson', avatar: 'https://i.pravatar.cc/150?img=15', spent: '$5.2K', seen: '1h ago' },
-                      { name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=11', spent: '$4.8K', seen: '3h ago' },
-                      { name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=5', spent: '$3.9K', seen: '1d ago' },
-                      { name: 'Bob Wilson', avatar: 'https://i.pravatar.cc/150?img=8', spent: '$3.5K', seen: '2d ago' },
-                    ].map((r, i) => (
-                      <tr key={i} onClick={() => setSelectedConciergeClient(r)} className="hover:bg-white/[0.03] cursor-pointer group">
-                        <td className="py-2.5 flex items-center gap-2.5">
-                          <img src={r.avatar} className="w-7 h-7 rounded-full border border-gray-700" alt=""/>
-                          <span className="text-xs font-extrabold text-white group-hover:text-yellow-400 transition-colors">{r.name}</span>
-                        </td>
-                        <td className="py-2.5 text-xs font-black text-yellow-400 text-right font-mono">{r.spent}</td>
-                        <td className="py-2.5 text-[10px] text-gray-400 text-right font-mono">{r.seen}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* VIP Alerts */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-extrabold text-white flex items-center gap-2"><AlertTriangle size={15} className="text-red-500"/> VIP Alerts</h3>
-                <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 font-bold">4 Action Req</span>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { title: 'High Roller Inactive', desc: 'Alex Mercer inactive for 7 days', color: 'text-red-400' },
-                  { title: 'VIP Creator At Risk', desc: 'Luna Starr revenue dropped 15%', color: 'text-orange-400' },
-                  { title: 'VIP Fan Spending Drop', desc: 'Sarah Kline spending down 30%', color: 'text-yellow-400' },
-                  { title: 'Prospect Ready', desc: 'David Chen eligible for VIP', color: 'text-neon-green' },
-                ].map((a, i) => (
-                  <div key={i} onClick={() => setSelectedConciergeClient(a)} className="flex flex-col gap-1 p-2.5 bg-gray-900/60 rounded-xl border border-gray-800/80 hover:border-gray-700 cursor-pointer transition-colors">
-                    <div className={`text-xs font-extrabold ${a.color}`}>{a.title}</div>
-                    <div className="text-[10px] text-gray-400 font-medium">{a.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="flex-1 w-full min-h-0 -ml-2 -mb-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueTrendData}>
+                <defs>
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1B2332" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#6b7280' }} dy={10} minTickGap={20} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#6b7280' }} tickFormatter={(val) => `$${val/1000}K`} width={45} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="rev" stroke="#22c55e" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Row 4: Source & Engagement */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {/* Revenue by Source */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <h3 className="text-xs font-extrabold text-white mb-4">VIP Revenue by Source ({timeframe})</h3>
-              <div className="flex items-center gap-4 flex-1">
-                <div className="w-24 h-24 relative shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={revenueSourceData} innerRadius={30} outerRadius={45} dataKey="value" stroke="none">
-                        {revenueSourceData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+        {/* High Roller Activity */}
+        <div className="lg:col-span-3 bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-bold text-white">High Roller Activity</h3>
+            <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+          </div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-4">
+            {highRollerActivity.map((a, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <img src={a.avatar} alt={a.name} className="w-7 h-7 rounded-full border border-gray-700/80" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-bold text-white truncate">{a.name}</div>
+                  <div className="text-[9px] text-gray-500 mt-0.5">{a.time}</div>
                 </div>
-                <div className="flex-1 space-y-2">
-                  {revenueSourceData.map((s, i) => (
-                    <div key={i} className="flex justify-between items-center text-xs font-bold">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} /> <span className="text-gray-300">{s.name}</span></div>
-                      <span className="text-white font-mono">{s.value}%</span>
-                    </div>
+                <div className="text-[11px] font-bold text-green-500">{a.amount}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ROW 3: TABLES & ALERTS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {/* Top VIP Creators */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[260px]">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="text-[11px] font-bold text-white">Top VIP Creators <span className="text-gray-500 font-normal">(MTD)</span></h3>
+             <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+           </div>
+           <div className="flex-1 overflow-auto custom-scrollbar -mx-2">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[9px] font-semibold text-gray-500 border-b border-gray-800/80">
+                    <th className="pb-2 pl-2">Creator</th>
+                    <th className="pb-2">Revenue</th>
+                    <th className="pb-2">Fans</th>
+                    <th className="pb-2 pr-2 text-right">Growth</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/50">
+                  {topCreators.map(c => (
+                    <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-2 pl-2 flex items-center gap-2">
+                        <span className="text-[9px] text-gray-500 font-bold w-3">{c.id}</span>
+                        <img src={c.avatar} className="w-5 h-5 rounded-full" />
+                        <span className="text-[10px] font-bold text-gray-300 truncate max-w-[60px]">{c.name}</span>
+                      </td>
+                      <td className="py-2 text-[10px] text-gray-300 font-semibold">{c.rev}</td>
+                      <td className="py-2 text-[10px] text-gray-400">{c.fans}</td>
+                      <td className="py-2 pr-2 text-[10px] font-bold text-green-500 text-right">{c.growth}</td>
+                    </tr>
                   ))}
-                </div>
-              </div>
-            </div>
+                </tbody>
+              </table>
+           </div>
+        </div>
 
-            {/* Engagement by Tier */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <h3 className="text-xs font-extrabold text-white mb-4">VIP Engagement by Tier</h3>
-              <div className="flex items-center gap-4 flex-1">
-                <div className="w-24 h-24 relative shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={engagementTierData} innerRadius={0} outerRadius={45} dataKey="value" stroke="none">
-                        {engagementTierData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex-1 space-y-2">
-                  {engagementTierData.map((s, i) => (
-                    <div key={i} className="flex justify-between items-center text-xs font-bold">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} /> <span className="text-gray-300">{s.name}</span></div>
-                      <span className="text-white font-mono">{s.value}%</span>
-                    </div>
+        {/* Top VIP Fans */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[260px]">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="text-[11px] font-bold text-white">Top VIP Fans <span className="text-gray-500 font-normal">(MTD)</span></h3>
+             <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+           </div>
+           <div className="flex-1 overflow-auto custom-scrollbar -mx-2">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[9px] font-semibold text-gray-500 border-b border-gray-800/80">
+                    <th className="pb-2 pl-2">Fan</th>
+                    <th className="pb-2">Spent</th>
+                    <th className="pb-2">Transactions</th>
+                    <th className="pb-2 pr-2 text-right">Engagement</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/50">
+                  {topFans.map(f => (
+                    <tr key={f.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-2 pl-2 flex items-center gap-2">
+                        <span className="text-[9px] text-gray-500 font-bold w-3">{f.id}</span>
+                        <img src={f.avatar} className="w-5 h-5 rounded-full" />
+                        <span className="text-[10px] font-bold text-gray-300 truncate max-w-[60px]">{f.name}</span>
+                      </td>
+                      <td className="py-2 text-[10px] text-gray-300 font-semibold">{f.spent}</td>
+                      <td className="py-2 text-[10px] text-gray-400 text-center">{f.trans}</td>
+                      <td className="py-2 pr-2 text-[10px] font-bold text-green-500 text-right">{f.eng}</td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+           </div>
+        </div>
+
+        {/* High Rollers List */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[260px]">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="text-[11px] font-bold text-white">High Rollers <span className="text-gray-500 font-normal">(MTD)</span></h3>
+             <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+           </div>
+           <div className="flex-1 overflow-auto custom-scrollbar -mx-2">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[9px] font-semibold text-gray-500 border-b border-gray-800/80">
+                    <th className="pb-2 pl-2">High Roller</th>
+                    <th className="pb-2">Spent</th>
+                    <th className="pb-2">Frequency</th>
+                    <th className="pb-2 pr-2 text-right">Last Seen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/50">
+                  {highRollersList.map(h => (
+                    <tr key={h.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-2 pl-2 flex items-center gap-2">
+                        <span className="text-[9px] text-gray-500 font-bold w-3">{h.id}</span>
+                        <img src={h.avatar} className="w-5 h-5 rounded-full" />
+                        <span className="text-[10px] font-bold text-gray-300 truncate max-w-[60px]">{h.name}</span>
+                      </td>
+                      <td className="py-2 text-[10px] text-gray-300 font-semibold">{h.spent}</td>
+                      <td className="py-2 text-[10px] text-gray-400 text-center">{h.freq}</td>
+                      <td className="py-2 pr-2 text-[9px] text-gray-400 text-right">{h.seen}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+           </div>
+        </div>
+
+        {/* VIP Alerts */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[260px]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-bold text-white">VIP Alerts</h3>
+            <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+          </div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-3">
+            {alerts.map((a, i) => (
+              <div key={i} className="flex gap-3 items-start">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border mt-0.5 ${a.bg} ${a.border}`}>
+                  {a.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className="text-[10px] font-bold text-gray-300 truncate">{a.title}</h4>
+                    <span className="text-[8px] text-gray-500 whitespace-nowrap pt-0.5">{a.time}</span>
+                  </div>
+                  <p className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">{a.desc}</p>
                 </div>
               </div>
-            </div>
-
-            {/* VIP Pipeline */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <h3 className="text-xs font-extrabold text-white mb-4">VIP Pipeline Breakdown</h3>
-              <div className="space-y-3.5 flex-1">
-                 {[
-                   { stage: 'New VIP Prospects', count: 124, color: 'text-blue-400' },
-                   { stage: 'Engaged Prospects', count: 85, color: 'text-purple-400' },
-                   { stage: 'VIP Candidates', count: 42, color: 'text-pink-400' },
-                   { stage: 'VIP Onboarding', count: 18, color: 'text-yellow-400' },
-                   { stage: 'Active VIPs', count: 2743, color: 'text-neon-green' },
-                 ].map((p, i) => (
-                   <div key={i} className="flex justify-between items-center text-xs">
-                     <span className={`font-extrabold ${p.color}`}>{p.stage}</span>
-                     <span className="font-black text-white font-mono">{p.count}</span>
-                   </div>
-                 ))}
-              </div>
-            </div>
-
-            {/* Recommended Actions */}
-            <div className="glass-panel p-5 flex flex-col shadow-xl">
-              <h3 className="text-xs font-extrabold text-white mb-4 flex items-center gap-1.5"><Sparkles size={14} className="text-yellow-400"/> Recommended Concierge Tasks</h3>
-              <div className="space-y-2.5 flex-1">
-                 {[
-                   { title: 'Create Retention Campaign', desc: 'Target 45 at-risk VIPs', icon: Gift, action: () => addToast('success', 'Campaign Queued', 'Targeted 45 at-risk VIPs with special rewards.') },
-                   { title: 'Send Exclusive Offers', desc: 'To 124 new prospects', icon: ArrowRight, action: () => addToast('success', 'Offers Dispatched', 'Sent VIP welcome packages to 124 prospects.') },
-                   { title: 'Schedule VIP Calls', desc: 'Follow up with Top 10', icon: PhoneCall, action: () => setCallLead({ name: 'Top 10 VIP Spenders Check-in', phone: '+1 (310) 555-0899', stage: 'Diamond VIP Tier' }) }
-                 ].map((r, i) => (
-                   <button key={i} onClick={r.action} className="w-full flex items-center justify-between p-2.5 bg-gray-900 border border-gray-800 hover:border-neon-blue rounded-xl text-left transition-all group shadow-sm">
-                     <div className="flex items-center gap-2.5">
-                       <div className="w-7 h-7 rounded-lg bg-gray-800 flex items-center justify-center text-neon-blue group-hover:scale-110 transition-transform">
-                         <r.icon size={14} />
-                       </div>
-                       <div>
-                         <div className="text-xs font-black text-white group-hover:text-neon-blue transition-colors">{r.title}</div>
-                         <div className="text-[10px] text-gray-400 font-medium">{r.desc}</div>
-                       </div>
-                     </div>
-                     <ChevronRight size={14} className="text-gray-600 group-hover:text-white" />
-                   </button>
-                 ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* NEW: VIP CONCIERGE EXECUTIVE ASSISTANCE MODAL */}
-      <AnimatePresence>
-        {selectedConciergeClient && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setSelectedConciergeClient(null)}>
-            <motion.div initial={{ scale:0.95 }} animate={{ scale:1 }} exit={{ scale:0.95 }} className="bg-gray-950 border border-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl text-left space-y-4" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-800">
-                <div className="flex items-center gap-3">
-                  {selectedConciergeClient.avatar ? (
-                    <img src={selectedConciergeClient.avatar} className="w-10 h-10 rounded-full border border-gray-700" alt=""/>
-                  ) : (
-                    <div className="w-10 h-10 rounded-2xl bg-yellow-400/20 text-yellow-400 flex items-center justify-center font-black">👑</div>
-                  )}
-                  <div>
-                    <h3 className="text-base font-black text-white">{selectedConciergeClient.name || selectedConciergeClient.title || "VIP Client Concierge"}</h3>
-                    <p className="text-xs text-gray-400 font-mono">{selectedConciergeClient.spent || selectedConciergeClient.desc || "Priority Diamond Tier Member"}</p>
+      {/* ROW 4: BOTTOM CHARTS & ACTIONS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* VIP Revenue by Source */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <h3 className="text-[11px] font-bold text-white mb-4">VIP Revenue by Source <span className="text-gray-500 font-normal">(MTD)</span></h3>
+          <div className="flex flex-col xl:flex-row items-center gap-4 flex-1">
+             <div className="relative w-[120px] h-[120px] shrink-0">
+               <ResponsiveContainer width="100%" height="100%">
+                 <PieChart>
+                   <Pie data={revSourceData} innerRadius={40} outerRadius={55} paddingAngle={2} dataKey="value" stroke="none">
+                     {revSourceData.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.color} />
+                     ))}
+                   </Pie>
+                   <Tooltip content={<CustomTooltip />} />
+                 </PieChart>
+               </ResponsiveContainer>
+               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <div className="text-[13px] font-bold text-white leading-tight">$683,420</div>
+                  <div className="text-[8px] text-gray-500 font-semibold">Total Revenue</div>
+               </div>
+             </div>
+             <div className="flex-1 w-full space-y-1.5 overflow-y-auto custom-scrollbar max-h-[140px] pr-1">
+                {revSourceData.map((r, i) => (
+                  <div key={i} className="flex items-center text-[9px] gap-2">
+                    <div className="w-2 h-2 rounded-[2px]" style={{ backgroundColor: r.color }} />
+                    <span className="text-gray-400 flex-1 truncate">{r.name}</span>
+                    <span className="text-white font-semibold">${(r.value/1000).toFixed(1)}K</span>
+                    <span className="text-gray-500 w-8 text-right">{r.pct}</span>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setCallLead(selectedConciergeClient)} className="text-neon-green hover:bg-neon-green/20 px-3 py-1.5 bg-gray-900 rounded-xl border border-neon-green/40 flex items-center gap-1.5 text-xs font-bold transition-all shadow-sm"><PhoneCall size={13}/> Call VIP</button>
-                  <button onClick={() => setSelectedConciergeClient(null)} className="text-gray-400 hover:text-white p-1.5 bg-gray-900 rounded-full"><X size={16}/></button>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 p-3 rounded-2xl text-xs text-yellow-300 font-medium">
-                💎 <strong className="text-white font-bold">VIP Concierge Action Desk:</strong> Direct high-value client assistance and rewards distribution.
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <label className="font-extrabold text-gray-300 block">Select VIP Concierge Reward / Action</label>
-                {[
-                  "🍾 Send Complimentary Champagne / Luxury Gift Box ($150)",
-                  "⚡ Attach +10% Lifetime Revenue Share Loyalty Bonus",
-                  "📞 Assign Senior 24/7 Private VIP Concierge Manager",
-                  "🎟️ Issue 50 Free Tip Vouchers ($500 Value)"
-                ].map((gift, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => handleSendVipGift(selectedConciergeClient, gift)}
-                    className="w-full p-3 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-yellow-400 text-left font-bold text-gray-200 hover:text-white transition-all flex items-center justify-between group shadow-sm"
-                  >
-                    <span>{gift}</span>
-                    <Send size={12} className="text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
                 ))}
-              </div>
+             </div>
+          </div>
+          <button className="text-[9px] font-semibold text-blue-500 hover:text-blue-400 mt-2 text-center w-full">View full report →</button>
+        </div>
 
-              <div className="pt-2">
-                <label className="text-xs font-bold text-gray-400 block mb-1">Or Send Custom VIP Notice / Gift</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Type custom reward note..." 
-                    value={customGiftMessage}
-                    onChange={e => setCustomGiftMessage(e.target.value)}
-                    className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-yellow-400"
-                  />
-                  <button 
-                    onClick={() => handleSendVipGift(selectedConciergeClient, customGiftMessage || "Custom VIP Gift")}
-                    disabled={!customGiftMessage}
-                    className="px-5 py-2.5 bg-yellow-400 text-black font-black text-xs rounded-xl hover:bg-yellow-300 transition-all disabled:opacity-50"
-                  >
-                    Send 🚀
-                  </button>
+        {/* VIP Engagement by Tier */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-bold text-white">VIP Engagement by Tier</h3>
+            <button className="text-[10px] font-semibold text-blue-500 hover:text-blue-400">View All</button>
+          </div>
+          <div className="flex flex-col xl:flex-row items-center gap-4 flex-1">
+             <div className="relative w-[120px] h-[120px] shrink-0">
+               <ResponsiveContainer width="100%" height="100%">
+                 <PieChart>
+                   <Pie data={engDonut} innerRadius={40} outerRadius={55} paddingAngle={2} dataKey="value" stroke="none">
+                     {engDonut.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.color} />
+                     ))}
+                   </Pie>
+                   <Tooltip content={<CustomTooltip />} />
+                 </PieChart>
+               </ResponsiveContainer>
+               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <div className="text-[16px] font-bold text-white leading-tight">78.6%</div>
+                  <div className="text-[8px] text-gray-500 font-semibold text-center leading-tight">Engagement Rate</div>
+               </div>
+             </div>
+             <div className="flex-1 w-full space-y-2 overflow-y-auto custom-scrollbar max-h-[140px] pr-1">
+                {engTierData.map((e, i) => (
+                  <div key={i} className="flex items-center text-[9px] gap-2">
+                    <div className="w-2 h-2 rounded-[2px]" style={{ backgroundColor: e.color }} />
+                    <span className="text-gray-400 flex-1 truncate">{e.name}</span>
+                    <span className="text-white font-semibold">{e.val}</span>
+                    <span className="text-green-500 font-semibold text-right">{e.grw}</span>
+                  </div>
+                ))}
+             </div>
+          </div>
+        </div>
+
+        {/* VIP Pipeline */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <h3 className="text-[11px] font-bold text-white mb-4">VIP Pipeline</h3>
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3.5 pr-2">
+            
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-500"><Star size={14} /></div>
+              <div className="flex-1"><h4 className="text-[10px] font-bold text-gray-300">New VIP Prospects</h4></div>
+              <div className="text-[11px] font-bold text-white">1,247</div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-500"><ShieldCheck size={14} /></div>
+              <div className="flex-1"><h4 className="text-[10px] font-bold text-gray-300">Engaged Prospects</h4></div>
+              <div className="text-[11px] font-bold text-white">487</div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500"><Crown size={14} /></div>
+              <div className="flex-1"><h4 className="text-[10px] font-bold text-gray-300">VIP Candidates</h4></div>
+              <div className="text-[11px] font-bold text-white">189</div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500"><Lock size={14} /></div>
+              <div className="flex-1"><h4 className="text-[10px] font-bold text-gray-300">VIP Onboarding</h4></div>
+              <div className="text-[11px] font-bold text-white">76</div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500"><CheckCircle size={14} /></div>
+              <div className="flex-1"><h4 className="text-[10px] font-bold text-gray-300">Active VIPs</h4></div>
+              <div className="text-[11px] font-bold text-white">2,497</div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Recommended Actions */}
+        <div className="bg-[#0D111B] border border-[#1B2332] rounded-xl p-4 flex flex-col h-[280px]">
+          <h3 className="text-[11px] font-bold text-white mb-4">Recommended Actions</h3>
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+            {actions.map((act, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-800/30 transition-colors border border-transparent hover:border-gray-800">
+                <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${act.color}`}>
+                    {act.icon}
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-300 truncate">{act.title}</span>
                 </div>
+                <button className="text-[9px] font-semibold text-blue-500 hover:text-blue-400 whitespace-nowrap shrink-0">{act.btn}</button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* FILTERS MODAL */}
-      <AnimatePresence>
-        {showFiltersModal && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowFiltersModal(false)}>
-            <motion.div initial={{ scale:0.95 }} animate={{ scale:1 }} exit={{ scale:0.95 }} className="bg-gray-950 border border-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-left space-y-4" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center pb-2 border-b border-gray-800">
-                <h3 className="text-base font-black text-white flex items-center gap-2"><Filter size={16} className="text-neon-blue"/> VIP Directory Filters</h3>
-                <button onClick={() => setShowFiltersModal(false)} className="text-gray-400 hover:text-white p-1 bg-gray-900 rounded-full"><X size={14}/></button>
-              </div>
-              <div className="space-y-3 text-xs pt-1">
-                <div>
-                  <label className="font-bold text-gray-400 block mb-1">Engagement Tier</label>
-                  <select className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-neon-blue">
-                    <option>All Tiers (Diamond to Bronze)</option>
-                    <option>Diamond ($5k+ spend/mo)</option>
-                    <option>Platinum ($2k - $5k/mo)</option>
-                    <option>Gold ($1k - $2k/mo)</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setShowFiltersModal(false)} className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl">Reset</button>
-                <button onClick={() => { addToast('success', 'Filters Applied', 'Filtered VIP directory by tier.'); setShowFiltersModal(false); }} className="flex-1 py-2.5 bg-neon-blue text-black font-black text-xs rounded-xl shadow-md">Apply Filter</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* EXPORT MODAL */}
-      <AnimatePresence>
-        {showExportModal && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowExportModal(false)}>
-            <motion.div initial={{ scale:0.95 }} animate={{ scale:1 }} exit={{ scale:0.95 }} className="bg-gray-950 border border-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-left space-y-4" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center pb-2 border-b border-gray-800">
-                <h3 className="text-base font-black text-white flex items-center gap-2"><Download size={16} className="text-neon-blue"/> Export VIP Report</h3>
-                <button onClick={() => setShowExportModal(false)} className="text-gray-400 hover:text-white p-1 bg-gray-900 rounded-full"><X size={14}/></button>
-              </div>
-              <p className="text-xs text-gray-300">Download comprehensive VIP Concierge directory and spend attribution for <strong className="text-white font-bold">{timeframe}</strong>.</p>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <button onClick={() => { addToast('success', 'CSV Generated', 'VIP_Directory_Report.csv downloaded.'); setShowExportModal(false); }} className="py-3 bg-neon-blue text-black font-black text-xs rounded-xl hover:bg-cyan-400 transition-all shadow-md">Download CSV</button>
-                <button onClick={() => { addToast('success', 'PDF Generated', 'Executive_VIP_Audit.pdf downloaded.'); setShowExportModal(false); }} className="py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs rounded-xl border border-gray-700">Download PDF</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <CallModal open={!!callLead} lead={callLead} onClose={() => setCallLead(null)} />
+            ))}
+          </div>
+        </div>
+      </div>
+      
     </div>
   );
 }

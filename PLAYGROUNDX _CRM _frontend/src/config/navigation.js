@@ -41,7 +41,6 @@ export const TENANT_MENU = [
     children: [
       { id: 't-dashboard', label: 'Overview', path: '/dashboard', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR', 'AGENT', 'VIEWER', 'RECEPTIONIST'] },
       { id: 't-revenue', label: 'Financials', path: '/revenue', allowedRoles: ['TENANT_OWNER', 'VIEWER'] },
-      { id: 't-kpi-dash', label: 'Analytics Hub', path: '/kpi-dashboard', allowedRoles: ['TENANT_OWNER', 'VIEWER'] },
     ]
   },
   {
@@ -89,14 +88,14 @@ export const TENANT_MENU = [
     label: 'Front Desk Operations',
     icon: CalendarIcon,
     isGroup: true,
-    allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'],
+    allowedRoles: ['RECEPTIONIST'],
     children: [
-      { id: 't-reception-main', label: 'Front Desk Center', path: '/reception', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'] },
-      { id: 't-appointments-desk', label: 'Appointment Center', path: '/appointments', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER', 'SUPERVISOR'] },
-      { id: 't-visitors-log', label: 'Visitor Log & Passes', path: '/visitors', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'] },
-      { id: 't-walk-ins-queue', label: 'Walk-In Queue', path: '/walk-ins', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'] },
-      { id: 't-reception-calls', label: 'Front Desk Calls', path: '/reception-calls', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'] },
-      { id: 't-reception-msg', label: 'SMS & WhatsApp', path: '/reception-messages', allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER'] },
+      { id: 't-reception-main', label: 'Front Desk Center', path: '/reception', allowedRoles: ['RECEPTIONIST'] },
+      { id: 't-appointments-desk', label: 'Appointment Center', path: '/appointments', allowedRoles: ['RECEPTIONIST'] },
+      { id: 't-visitors-log', label: 'Visitor Log & Passes', path: '/visitors', allowedRoles: ['RECEPTIONIST'] },
+      { id: 't-walk-ins-queue', label: 'Walk-In Queue', path: '/walk-ins', allowedRoles: ['RECEPTIONIST'] },
+      { id: 't-reception-calls', label: 'Front Desk Calls', path: '/reception-calls', allowedRoles: ['RECEPTIONIST'] },
+      { id: 't-reception-msg', label: 'SMS & WhatsApp', path: '/reception-messages', allowedRoles: ['RECEPTIONIST'] },
     ]
   },
   {
@@ -123,7 +122,6 @@ export const TENANT_MENU = [
     children: [
       { id: 't-workspace', label: 'Agent Workspace', path: '/workspace', allowedRoles: ['AGENT'] },
       { id: 't-agents', label: 'Agents', path: '/agents', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR'] },
-      { id: 't-appointments', label: 'Appointments', path: '/appointments', allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
     ]
   },
   {
@@ -136,7 +134,7 @@ export const TENANT_MENU = [
       { id: 't-settings', label: 'Settings', path: '/settings', allowedRoles: ['TENANT_OWNER'] },
       { id: 't-integrations', label: 'Integrations', path: '/integrations', allowedRoles: ['TENANT_OWNER'] },
       { id: 't-audit', label: 'Audit Logs', path: '/audit', allowedRoles: ['TENANT_OWNER'] },
-      { id: 't-automations', label: 'Workflow Engine', path: '/routing-rules', allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
+      { id: 't-automations', label: 'Automations', path: '/automations', allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
     ]
   },
   {
@@ -147,14 +145,8 @@ export const TENANT_MENU = [
     allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR', 'VIEWER'],
     children: [
       { id: 't-reports', label: 'Reports', path: '/reports', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR', 'VIEWER'] },
-      { id: 't-exec-reports', label: 'Executive Reports', path: '/executive-reports', allowedRoles: ['TENANT_OWNER', 'VIEWER'] },
-      { id: 't-biz-analytics', label: 'Business Analytics', path: '/business-analytics', allowedRoles: ['TENANT_OWNER', 'VIEWER'] },
-      { id: 't-dept-performance', label: 'Department Performance', path: '/department-performance', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR'] },
-      { id: 't-section-performance', label: 'Section Performance', path: '/section-performance', allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
       { id: 't-quality', label: 'Quality Assurance', path: '/quality', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR', 'VIEWER'] },
-      { id: 't-revenue-analytics', label: 'Revenue Analytics', path: '/revenue-analytics', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'VIEWER'] },
       { id: 't-vip-analytics', label: 'VIP Analytics', path: '/vip-analytics', allowedRoles: ['TENANT_OWNER', 'VIEWER'] },
-      { id: 't-ai-insights', label: 'AI Insights', path: '/ai-insights', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'VIEWER'] },
       { id: 't-activity-feed', label: 'Activity Feed', path: '/activity-feed', allowedRoles: ['TENANT_OWNER', 'MANAGER', 'SUPERVISOR'] },
     ]
   },
@@ -165,7 +157,6 @@ export const TENANT_MENU = [
   { id: 't-routing-rules', label: 'Routing Rules', path: '/routing-rules', isHidden: true, allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
   { id: 't-knowledge-base', label: 'Knowledge Base', path: '/knowledge-base', isHidden: true, allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
   { id: 't-templates', label: 'Message Templates', path: '/templates', isHidden: true, allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
-  { id: 't-automations-hidden', label: 'Automations', path: '/automations', isHidden: true, allowedRoles: ['TENANT_OWNER', 'MANAGER'] },
   
   // Note: Notifications are handled via the Header bell icon now, but we keep the route valid:
   { id: 't-notifications', label: 'Notifications', path: '/notifications', isHidden: true, allowedRoles: ['RECEPTIONIST', 'TENANT_OWNER', 'MANAGER', 'SUPERVISOR', 'AGENT', 'VIEWER'] },

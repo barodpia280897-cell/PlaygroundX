@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, Plus, Filter, LayoutGrid, Settings, TrendingUp, Users, Clock, Layers, ShieldCheck, Info, CheckCircle2 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { ChevronRight, Search, Plus, Filter, LayoutGrid, Settings, TrendingUp, Users, Clock, Layers, ShieldCheck, Info, CheckCircle2, Heart } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis } from 'recharts';
 import { useToast } from '../contexts/ToastContext';
 
 // MOCK DATA
@@ -264,7 +264,7 @@ export default function Pipelines() {
                       <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold border ${stage.color}`}>
                         {stage.id}
                       </div>
-                      <h4 className="text-[11px] font-bold text-white truncate">{stage.name}</h4>
+                      <h4 className={`text-[11px] font-bold truncate ${stage.color.split(' ')[0]}`}>{stage.name}</h4>
                     </div>
                     <div className="flex items-center justify-between text-[9px] font-semibold text-gray-400 mt-1">
                       <span>{stage.leads} Leads</span>
@@ -351,7 +351,7 @@ export default function Pipelines() {
                       <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold border ${stage.color}`}>
                         {stage.id}
                       </div>
-                      <h4 className="text-[11px] font-bold text-white truncate">{stage.name}</h4>
+                      <h4 className={`text-[11px] font-bold truncate ${stage.color.split(' ')[0]}`}>{stage.name}</h4>
                     </div>
                     <div className="flex items-center justify-between text-[9px] font-semibold text-gray-400 mt-1">
                       <span>{stage.leads} Leads</span>

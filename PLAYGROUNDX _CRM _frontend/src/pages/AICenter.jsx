@@ -50,33 +50,34 @@ export default function AICenter() {
   });
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 pb-10 h-full min-h-0">
+    <div className="flex flex-col gap-6 pb-10 h-full min-h-0">
       
-      {/* Vertical Sidebar Tabs */}
-      <div className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
-        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest px-4 mb-2">AI Command Center</h3>
-        
-        <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <LayoutDashboard size={18} /> Dashboard
-        </button>
-        <button onClick={() => setActiveTab('knowledge-base')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'knowledge-base' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <BookOpen size={18} /> Knowledge Base
-        </button>
-        <button onClick={() => setActiveTab('training')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'training' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <Brain size={18} /> AI Training
-        </button>
-        <button onClick={() => setActiveTab('prompt-library')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'prompt-library' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <Code size={18} /> Prompt Library
-        </button>
-        <button onClick={() => setActiveTab('handoff-rules')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'handoff-rules' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <Network size={18} /> Handoff Rules
-        </button>
-        <button onClick={() => setActiveTab('analytics')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <Activity size={18} /> AI Analytics
-        </button>
-        <button onClick={() => setActiveTab('automation')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'automation' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
-          <Workflow size={18} /> Automation Rules
-        </button>
+      {/* Horizontal Tabs */}
+      <div className="w-full shrink-0 flex flex-col gap-3">
+        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">AI Command Center</h3>
+        <div className="flex flex-row overflow-x-auto no-scrollbar gap-2 pb-1">
+          <button onClick={() => setActiveTab('dashboard')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <LayoutDashboard size={16} /> Dashboard
+          </button>
+          <button onClick={() => setActiveTab('knowledge-base')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'knowledge-base' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <BookOpen size={16} /> Knowledge Base
+          </button>
+          <button onClick={() => setActiveTab('training')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'training' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <Brain size={16} /> AI Training
+          </button>
+          <button onClick={() => setActiveTab('prompt-library')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'prompt-library' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <Code size={16} /> Prompt Library
+          </button>
+          <button onClick={() => setActiveTab('handoff-rules')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'handoff-rules' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <Network size={16} /> Handoff Rules
+          </button>
+          <button onClick={() => setActiveTab('analytics')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <Activity size={16} /> AI Analytics
+          </button>
+          <button onClick={() => setActiveTab('automation')} className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'automation' ? 'bg-neon-blue/10 text-neon-blue border border-neon-blue/30' : 'text-gray-400 hover:text-white hover:bg-gray-900 border border-transparent'}`}>
+            <Workflow size={16} /> Automation Rules
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}

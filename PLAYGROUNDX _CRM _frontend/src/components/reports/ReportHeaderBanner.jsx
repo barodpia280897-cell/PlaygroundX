@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Filter, Download, Calendar, Users, Target, Check,
@@ -87,7 +87,7 @@ export default function ReportHeaderBanner({
 
         <div className="relative z-10 px-4 py-3 md:px-5 md:py-4">
           {/* Top row: title left, controls right */}
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 md:gap-4">
             {/* Left: title + subtitle */}
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-0.5">
@@ -110,12 +110,12 @@ export default function ReportHeaderBanner({
             </div>
 
             {/* Right: action buttons */}
-            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            <div className="flex flex-wrap md:flex-nowrap items-center gap-1.5 sm:gap-2 w-full md:w-auto shrink-0 pt-1 md:pt-0">
               {/* Date */}
-              <div className="relative">
+              <div className="relative flex-1 md:flex-initial">
                 <button
                   onClick={() => { setShowDateDropdown(v => !v); setShowDeptDropdown(false); setShowExportDropdown(false); }}
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-neon-blue/50 transition-all whitespace-nowrap"
+                  className="w-full justify-center flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-neon-blue/50 transition-all whitespace-nowrap"
                 >
                   <Calendar size={11} className="text-neon-blue shrink-0" />
                   <span className="hidden md:inline max-w-[80px] truncate">{date}</span>
@@ -141,10 +141,10 @@ export default function ReportHeaderBanner({
               </div>
 
               {/* Dept */}
-              <div className="relative">
+              <div className="relative flex-1 md:flex-initial">
                 <button
                   onClick={() => { setShowDeptDropdown(v => !v); setShowDateDropdown(false); setShowExportDropdown(false); }}
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-purple-500/50 transition-all whitespace-nowrap"
+                  className="w-full justify-center flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-purple-500/50 transition-all whitespace-nowrap"
                 >
                   <Sliders size={11} className="text-purple-400 shrink-0" />
                   <span className="hidden lg:inline max-w-[90px] truncate">{dept}</span>
@@ -170,10 +170,10 @@ export default function ReportHeaderBanner({
               </div>
 
               {/* Filters */}
-              <div className="relative">
+              <div className="relative flex-1 md:flex-initial">
                 <button
                   onClick={() => setShowFilterModal(true)}
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-neon-green/50 transition-all whitespace-nowrap"
+                  className="w-full justify-center flex items-center gap-1 px-2 py-1.5 rounded-lg border border-gray-700 bg-gray-900/80 text-[10px] sm:text-[11px] font-bold text-gray-300 hover:text-white hover:border-neon-green/50 transition-all whitespace-nowrap"
                 >
                   <Filter size={11} className="text-neon-green shrink-0" />
                   <span>Filters</span>
@@ -186,10 +186,10 @@ export default function ReportHeaderBanner({
               </div>
 
               {/* Export */}
-              <div className="relative">
+              <div className="relative flex-1 md:flex-initial">
                 <button
                   onClick={() => { setShowExportDropdown(v => !v); setShowDateDropdown(false); setShowDeptDropdown(false); }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-neon-blue text-black font-black text-[10px] sm:text-[11px] hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(0,240,255,0.2)] whitespace-nowrap"
+                  className="w-full justify-center flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-neon-blue text-black font-black text-[10px] sm:text-[11px] hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(0,240,255,0.2)] whitespace-nowrap"
                 >
                   <Download size={11} className="shrink-0" />
                   <span>Export</span>

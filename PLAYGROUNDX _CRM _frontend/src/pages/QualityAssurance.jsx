@@ -91,8 +91,8 @@ export default function QualityAssurance() {
           <p className="text-sm text-muted mt-0.5">Monitor quality, ensure compliance and improve performance</p>
         </div>
         
-        <div className="flex items-center gap-2 flex-wrap" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center bg-gray-900/50 border border-gray-700 rounded-xl px-1 overflow-hidden">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center bg-gray-900/50 border border-gray-700 rounded-xl px-1 overflow-x-auto max-w-full w-full md:w-auto custom-scrollbar">
             {['Overview', 'Conversations', 'Calls', 'Emails', 'AI Handovers', 'Escalations', 'Scorecards', 'Coaching', 'Reports'].map((t, i) => (
               <button key={i} onClick={() => setActiveTab(t)} className={`px-3 py-2 text-xs font-bold transition-all whitespace-nowrap ${activeTab === t ? 'text-neon-blue bg-white/5 border-b-2 border-neon-blue' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>{t}</button>
             ))}
